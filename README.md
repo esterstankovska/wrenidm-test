@@ -1,6 +1,6 @@
-# Wren:IDM System Test Resources
+# Wren:IDM System Tests
 
-Resources for performing Wren:IDM system tests.
+Repository containing Wren:IDM system tests.
 
 
 ## Test Categories
@@ -25,28 +25,28 @@ Resources for performing Wren:IDM system tests.
 
 ## Running Tests
 
-Tests can be run manually by executing shell scripts in alphabetical order in their
-respective test category folder.
-
-Use `run.sh` shell script to run the whole test suite:
+Before running any tests, make sure the following entries are in your hosts file:
 
 ```console
-$ ./run.sh
+127.0.0.1 wrenidm.wrensecurity.local
 ```
 
-Note that the whole test suite finishes successfully (without an error), the platform containers will be shutdown.
-In case of a failed test, the platform won't be shutdown to allow for easier debugging.
+Tests can be run using the _Maven Surefire Plugin_:
 
-Tests are based on docker image of Wren:IDM named `wrenidm`. This image name can be overriden
+```console
+$ mvn test
+```
+
+You can restrict the execution of tests by specifying the name of the test class:
+
+```console
+$ mvn test -Dtest="RouteTest"
+```
+
+Tests are based on the latest Wren:IDM docker image. This image name can be overriden
 with `WRENIDM_IMAGE` environment variable:
 
 ```console
-$ WRENIDM_IMAGE=wrenidm-local ./run.sh
+$ WRENIDM_IMAGE=wrenidm-local mvn test
 ```
 
-Failed tests can be resumed from a specific category with `RESUME_FROM` environment variable
-(be sure to cleanup leftover docker containers before resuming):
-
-```console
-$ RESUME_FROM=replication ./run.sh
-```
