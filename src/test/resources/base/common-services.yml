@@ -3,3 +3,10 @@ services:
     image: ${WRENIDM_IMAGE:-wrensecurity/wrenidm:latest}
     ports:
       - 8080:8080
+
+  smtp:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
+

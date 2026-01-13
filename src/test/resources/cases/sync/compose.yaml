@@ -1,0 +1,26 @@
+services:
+  wrenidm:
+    extends:
+      file: ../../base/common-services.yml
+      service: wrenidm
+    volumes:
+      - ../../../../../legacy/docker/wrenidm/conf/provisioner.openicf-csv.json:/opt/wrenidm/conf/provisioner.openicf-csv.json
+      - ../../../../../legacy/docker/wrenidm/conf/sync.json:/opt/wrenidm/conf/sync.json
+      - ../../../../../legacy/docker/wrenidm/data/hr.csv:/tmp/data/hr.csv
+      - ../provisioner/conf/provisioner.openicf-ldap.json:/opt/wrenidm/conf/provisioner.openicf-ldap.json:ro
+
+  ldap:
+    image: osixia/openldap:1.5.0
+    environment:
+      LDAP_ORGANISATION: "Wren Security"
+      LDAP_DOMAIN: "wrensecurity.org"
+      LDAP_ADMIN_PASSWORD: "password"
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost", "-b", "dc=wrensecurity,dc=org", "-D", "cn=admin,dc=wrensecurity,dc=org", "-w", "password"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      default:
+        aliases:
+          - ldap.wrensecurity.local
