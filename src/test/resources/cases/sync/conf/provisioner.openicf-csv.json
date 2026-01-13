@@ -3,7 +3,7 @@
     "enabled" : true,
     "connectorRef" : {
         "bundleName"    : "org.forgerock.openicf.connectors.csvfile-connector",
-        "bundleVersion" : "[1.4.0.0,2.0.0.0)",
+        "bundleVersion" : "1.5.1.4",
         "connectorName" : "org.forgerock.openicf.csvfile.CSVFileConnector"
     },
     "poolConfigOption" : {

@@ -15,7 +15,10 @@
  */
 package org.wrensecurity.wrenidm.test.base;
 
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
@@ -27,6 +30,8 @@ import tools.jackson.databind.ObjectMapper;
 
 public abstract class BaseWrenidmTest {
 
+    protected static final int MAX_PROVISIONER_WAIT_SECONDS = 30;
+
     // Default Wren:IDM Docker container name
     protected static final String WRENIDM_CONTAINER_NAME = "wrenidm";
 
@@ -34,6 +39,9 @@ public abstract class BaseWrenidmTest {
 
     protected static final String ANONYMOUS_AUTHORIZATION_HEADER_VALUE = "Basic " + Base64.getEncoder()
             .encodeToString("anonymous:anonymous".getBytes());
+
+    protected static final String ADMIN_AUTHORIZATION_HEADER_VALUE = "Basic " + Base64.getEncoder()
+            .encodeToString("openidm-admin:openidm-admin".getBytes());
 
     protected static final ObjectMapper mapper = new ObjectMapper();
 
@@ -51,5 +59,31 @@ public abstract class BaseWrenidmTest {
     protected final HttpClient httpClient = HttpClient.newHttpClient();
 
     protected ComposeContainer environment;
+
+    /**
+     * Wait for a provisioner to be fully loaded and available.
+     * The core Wren:IDM startup wait strategy only ensures the server is ready,
+     * but provisioners may take additional time to initialize.
+     *
+     * @param provisionerName the name of the provisioner
+     */
+    protected void waitForProvisioner(String provisionerName) throws Exception {
+        HttpRequest checkReq = HttpRequest.newBuilder()
+                .uri(URI.create(WRENIDM_BASE_URL + "/openidm/system/" + provisionerName + "?_action=test"))
+                .header("Authorization", ADMIN_AUTHORIZATION_HEADER_VALUE)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{}"))
+                .build();
+
+        for (int i = 0; i < MAX_PROVISIONER_WAIT_SECONDS; i++) {
+            HttpResponse<String> resp = httpClient.send(checkReq, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                return;
+            }
+            Thread.sleep(1000);
+        }
+        throw new IllegalStateException(provisionerName + " provisioner did not become available within "
+                + MAX_PROVISIONER_WAIT_SECONDS + " seconds");
+    }
 
 }
